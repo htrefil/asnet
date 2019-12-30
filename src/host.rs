@@ -63,6 +63,8 @@ where
                     self.peers.remove(i);
                     continue;
                 }
+
+                return Err(err);
             }
 
             for packet in peer.incoming_packets() {
