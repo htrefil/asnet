@@ -1,4 +1,4 @@
-/// asnet is a simple asynchronous, packet-oriented library inspired by the ENet library.
+//! asnet is a simple asynchronous, packet-oriented networking library built on TCP.
 pub mod event;
 pub mod host;
 pub mod peer;
