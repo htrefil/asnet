@@ -55,16 +55,12 @@ where
 
             if let Err(err) = peer.update() {
                 // Remote part sending invalid data isn't a fatal error, so we will disconnect the peer instead.
+                // Don't remove it since there might be incoming packets.
                 if err.kind() == ErrorKind::InvalidData {
-                    self.events.push_back(Event {
-                        kind: EventKind::Disconnect,
-                        peer: peer.clone(),
-                    });
-                    self.peers.remove(i);
-                    continue;
+                    peer.set_connection_state(ConnectionState::Disconnected);
+                } else {
+                    return Err(err);
                 }
-
-                return Err(err);
             }
 
             for packet in peer.incoming_packets() {
