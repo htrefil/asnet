@@ -1,7 +1,8 @@
+/// asnet is a simple asynchronous, packet-oriented library inspired by the ENet library.
 pub mod event;
 pub mod host;
 pub mod peer;
 
-pub use self::event::{Event, EventKind};
-pub use self::host::Host;
-pub use self::peer::Peer;
+pub use event::{Event, EventKind};
+pub use host::Host;
+pub use peer::Peer;

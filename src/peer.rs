@@ -7,6 +7,7 @@ use std::net::SocketAddr;
 use std::rc::Rc;
 use std::time::Instant;
 
+/// Represents the state of a peer in a host.
 pub struct Peer<T> {
     shared: Rc<RefCell<Shared<T>>>,
 }
@@ -60,18 +61,25 @@ where
         }
     }
 
+    /// Disconnects the peer.
+    /// If not already disconnected, this will generate a Disconnect event.
     pub fn disconnect(&self) {
         self.shared.borrow_mut().connection_state = ConnectionState::Disconnected;
     }
 
+    /// Queues a packet to be sent.
+    ///
+    /// Doing this operation on a disconnected peer has no effect.
     pub fn send(&self, packet: Vec<u8>) {
         self.shared.borrow_mut().outgoing_packets.push_back(packet);
     }
 
-    pub fn data(&self) -> RefMut<T> {
+    /// Returns a mutable reference to its data.
+    pub fn data_mut(&self) -> RefMut<T> {
         RefMut::map(self.shared.borrow_mut(), |shared| &mut shared.data)
     }
 
+    /// Returns the socket address of the remote side.
     pub fn addr(&self) -> SocketAddr {
         self.shared.borrow().addr
     }
