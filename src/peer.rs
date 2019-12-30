@@ -1,6 +1,6 @@
 use mio::net::TcpStream;
 use mio::Ready;
-use std::cell::{RefCell, RefMut};
+use std::cell::{Ref, RefCell, RefMut};
 use std::collections::VecDeque;
 use std::io::{Error, ErrorKind, Read, Write};
 use std::net::SocketAddr;
@@ -74,7 +74,14 @@ where
         self.shared.borrow_mut().outgoing_packets.push_back(packet);
     }
 
+    /// Returns a reference to its data.
+    /// Panics if there is a mutable reference to the data.
+    pub fn data(&self) -> Ref<T> {
+        Ref::map(self.shared.borrow(), |shared| &shared.data)
+    }
+
     /// Returns a mutable reference to its data.
+    /// Panics if there are other reference(s) to the data.
     pub fn data_mut(&self) -> RefMut<T> {
         RefMut::map(self.shared.borrow_mut(), |shared| &mut shared.data)
     }
