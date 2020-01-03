@@ -1,8 +1,8 @@
 //! asnet is a simple asynchronous, packet-oriented networking library built on TCP.
-pub mod event;
-pub mod host;
-pub mod peer;
+mod event;
+mod host;
+mod peer;
 
 pub use event::{Event, EventKind};
-pub use host::Host;
+pub use host::{Host, HostBuilder};
 pub use peer::Peer;

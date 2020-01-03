@@ -32,7 +32,13 @@ fn main() -> Result<(), Error> {
                     .as_ref()
                     .cloned()
                     .unwrap_or_else(|| peer.addr().to_string());
-                let name = String::from_utf8(data).map_err(|_| ErrorKind::InvalidData)?;
+                let name = match String::from_utf8(data) {
+                    Ok(name) => name,
+                    Err(_) => {
+                        peer.disconnect();
+                        continue;
+                    }
+                };
 
                 println!("{} set his name to {}", who, name);
                 *peer.data_mut() = Some(name);
