@@ -7,6 +7,7 @@ use std::collections::VecDeque;
 use std::io::{Error, ErrorKind};
 use std::marker::PhantomData;
 use std::net::{SocketAddr, ToSocketAddrs};
+use std::ops::{Index, IndexMut};
 use std::time::{Duration, Instant};
 
 /// The host structure representing all connections.
@@ -31,18 +32,14 @@ where
         HostBuilder::default()
     }
 
-    /// Returns a reference to a peer associated with this index.
-    ///
-    /// Panics if no such peer exists.
-    pub fn peer(&self, idx: usize) -> &Peer<T> {
-        &self.peers[idx]
+    /// Returns a reference to a peer associated with this index, None if the index is invalid.
+    pub fn peer(&self, idx: usize) -> Option<&Peer<T>> {
+        self.peers.get(idx)
     }
 
-    /// Returns a mutable reference to a peer associated with this index.
-    ///
-    /// Panics if no such peer exists.
-    pub fn peer_mut(&mut self, idx: usize) -> &mut Peer<T> {
-        &mut self.peers[idx]
+    /// Returns a mutable reference to a peer associated with this index, None if the index is invalid.
+    pub fn peer_mut(&mut self, idx: usize) -> Option<&mut Peer<T>> {
+        self.peers.get_mut(idx)
     }
 
     /// Returns an iterator over all connected peers and their indices.
@@ -213,6 +210,26 @@ where
         }
 
         Ok(None)
+    }
+}
+
+impl<T> Index<usize> for Host<T> {
+    type Output = Peer<T>;
+
+    /// Returns a reference to a peer associated with this index.
+    ///
+    /// Panics if no such peer exists.
+    fn index(&self, idx: usize) -> &Peer<T> {
+        &self.peers[idx]
+    }
+}
+
+impl<T> IndexMut<usize> for Host<T> {
+    /// Returns a mutable reference to a peer associated with this index.
+    ///
+    /// Panics if no such peer exists.
+    fn index_mut(&mut self, idx: usize) -> &mut Peer<T> {
+        &mut self.peers[idx]
     }
 }
 
