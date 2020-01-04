@@ -6,8 +6,7 @@ use slab::Slab;
 use std::collections::VecDeque;
 use std::io::{Error, ErrorKind};
 use std::marker::PhantomData;
-use std::net::Ipv4Addr;
-use std::net::ToSocketAddrs;
+use std::net::{SocketAddr, ToSocketAddrs};
 use std::time::{Duration, Instant};
 
 /// The host structure representing all connections.
@@ -249,8 +248,8 @@ impl<T> HostBuilder<T> {
     }
 
     /// Creates a server host.
-    pub fn server(self, port: u16) -> Result<Host<T>, Error> {
-        let listener = TcpListener::bind(&(Ipv4Addr::LOCALHOST, port).into())?;
+    pub fn server(self, addr: SocketAddr) -> Result<Host<T>, Error> {
+        let listener = TcpListener::bind(&addr)?;
         let poll = Poll::new()?;
         poll.register(&listener, Token(0), Ready::all(), PollOpt::edge())?;
 
