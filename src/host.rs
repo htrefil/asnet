@@ -150,7 +150,8 @@ where
                 match err.kind() {
                     ErrorKind::InvalidData
                     | ErrorKind::ConnectionReset
-                    | ErrorKind::ConnectionAborted => {
+                    | ErrorKind::ConnectionAborted
+                    | ErrorKind::BrokenPipe => {
                         self.events.push_back(HostEvent {
                             kind: EventKind::Disconnect,
                             peer: idx,
