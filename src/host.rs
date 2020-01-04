@@ -149,6 +149,7 @@ where
             if let Err(err) = peer.process() {
                 match err.kind() {
                     ErrorKind::InvalidData
+                    | ErrorKind::ConnectionRefused
                     | ErrorKind::ConnectionReset
                     | ErrorKind::ConnectionAborted
                     | ErrorKind::BrokenPipe => {
