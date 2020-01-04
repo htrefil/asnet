@@ -57,7 +57,8 @@ where
 
     /// Connects to a remote asnet server.
     ///
-    /// If the remote server refuses the connection, a `Disconnect` event will be generated for this peer.
+    /// Ifthis function succeeds, a `Connect` event will be always generated, however, if the remote side declines the connection,
+    /// a `Disconnect` even will be generated immediately after that.
     pub fn connect<'a>(&'a mut self, addr: impl ToSocketAddrs) -> Result<&'a mut Peer<T>, Error> {
         let addr = addr
             .to_socket_addrs()?
@@ -75,25 +76,29 @@ where
         };
 
         let entry = self.peers.vacant_entry();
-        let kind = if let Some(ref stream) = stream {
+        let idx = entry.key();
+
+        self.events.push_back(HostEvent {
+            kind: EventKind::Connect,
+            peer: idx,
+        });
+
+        if let Some(ref stream) = stream {
             self.poll.register(
                 stream,
                 Token(entry.key() + 1),
                 Ready::all(),
                 PollOpt::edge(),
             )?;
-
-            EventKind::Connect
         } else {
-            EventKind::Disconnect
-        };
+            self.events.push_back(HostEvent {
+                kind: EventKind::Disconnect,
+                peer: idx,
+            });
+        }
 
-        let key = entry.key();
-        self.events.push_back(HostEvent { kind, peer: key });
-
-        entry.insert(Peer::new(addr, stream, key));
-
-        Ok(&mut self.peers[key])
+        entry.insert(Peer::new(addr, stream, idx));
+        Ok(&mut self.peers[idx])
     }
 
     /// Broadcasts a packet to all connected peers.
