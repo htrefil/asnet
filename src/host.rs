@@ -115,28 +115,7 @@ where
         }
     }
 
-    /// Sends outgoing packets and receives incoming packets. This is the only place where actual IO happens.
-    ///
-    /// Will block for maximum `timeout` duration of time. If `timeout` is set to `None`, will block indefinitely until something happens on any of the peers.
-    pub fn process<'a>(
-        &'a mut self,
-        timeout: Option<Duration>,
-    ) -> Result<Option<Event<'a, T>>, Error> {
-        if let Some(idx) = self.remove.take() {
-            self.peers.remove(idx);
-        }
-
-        if let Some(event) = self.events.pop_front() {
-            if event.kind == EventKind::Disconnect {
-                self.remove = Some(event.peer);
-            }
-
-            return Ok(Some(Event {
-                peer: &mut self.peers[event.peer],
-                kind: event.kind,
-            }));
-        }
-
+    fn process_internal(&mut self, timeout: Duration) -> Result<(), Error> {
         let now = Instant::now();
         // Wake up peers and collect incoming packets.
         for (idx, peer) in self.peers.iter_mut() {
@@ -172,7 +151,7 @@ where
             }
         }
 
-        self.poll.poll(&mut self.poll_events, timeout)?;
+        self.poll.poll(&mut self.poll_events, Some(timeout))?;
         for event in &self.poll_events {
             if event.token() == Token(0) {
                 let listener = self.listener.as_mut().unwrap();
@@ -209,7 +188,52 @@ where
             peer.update_ready(event.readiness());
         }
 
+        Ok(())
+    }
+
+    fn pop_event(&mut self) -> Option<HostEvent> {
+        if let Some(peer) = self.remove.take() {
+            self.peers.remove(peer);
+        }
+
+        if let Some(event) = self.events.pop_back() {
+            if event.kind == EventKind::Disconnect {
+                self.remove = Some(event.peer);
+            }
+
+            return Some(event);
+        }
+
+        None
+    }
+
+    /// Sends outgoing packets and receives incoming packets. This is the only place where actual IO happens.
+    ///
+    /// Will block for maximum `timeout` duration of time.
+    pub fn process<'a>(&'a mut self, timeout: Duration) -> Result<Option<Event<'a, T>>, Error> {
+        if let Some(HostEvent { kind, peer }) = self.pop_event() {
+            return Ok(Some(Event {
+                kind,
+                peer: &mut self.peers[peer],
+            }));
+        }
+
+        self.process_internal(timeout)?;
         Ok(None)
+    }
+
+    /// Like `process`, but will block indefinitely until an event happens.
+    pub fn process_blocking<'a>(&'a mut self) -> Result<Event<'a, T>, Error> {
+        loop {
+            if let Some(HostEvent { kind, peer }) = self.pop_event() {
+                return Ok(Event {
+                    kind,
+                    peer: &mut self.peers[peer],
+                });
+            }
+
+            self.process_internal(self.timeout)?;
+        }
     }
 }
 
