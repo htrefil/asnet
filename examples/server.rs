@@ -11,7 +11,7 @@ fn main() -> Result<(), Error> {
 
     loop {
         // Check for events, the call will block for max 500 millis.
-        let Event { kind, peer } = match host.process(Some(Duration::from_millis(500)))? {
+        let Event { kind, peer } = match host.process(Duration::from_millis(500))? {
             Some(event) => event,
             None => continue,
         };
