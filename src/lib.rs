@@ -2,6 +2,8 @@
 mod event;
 mod host;
 mod peer;
+#[cfg(test)]
+mod tests;
 
 pub use event::{Event, EventKind};
 pub use host::{Host, HostBuilder};
