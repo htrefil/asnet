@@ -18,6 +18,7 @@ pub struct Peer<T> {
     read_state: Option<ReadState>,
     last_activity: Instant,
     idx: usize,
+    acknowledged: bool,
 }
 
 impl<T> Peer<T>
@@ -36,6 +37,7 @@ where
             read_state: None,
             last_activity: Instant::now(),
             idx,
+            acknowledged: false,
         }
     }
 
@@ -61,6 +63,14 @@ where
 
     pub(crate) fn last_activity(&self) -> Instant {
         self.last_activity
+    }
+
+    pub(crate) fn acknowledged(&self) -> bool {
+        self.acknowledged
+    }
+
+    pub(crate) fn acknowledge(&mut self) {
+        self.acknowledged = true;
     }
 
     fn process_writable(&mut self) -> Result<(), Error> {

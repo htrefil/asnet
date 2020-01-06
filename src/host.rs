@@ -44,12 +44,16 @@ where
 
     /// Returns an iterator over all connected peers and their indices.
     pub fn peers(&self) -> impl Iterator<Item = (usize, &Peer<T>)> {
-        self.peers.iter().filter(|(_, peer)| peer.connected())
+        self.peers
+            .iter()
+            .filter(|(_, peer)| peer.connected() && peer.acknowledged())
     }
 
     /// Returns an iterator over all connected peers and their indices.
     pub fn peers_mut(&mut self) -> impl Iterator<Item = (usize, &mut Peer<T>)> {
-        self.peers.iter_mut().filter(|(_, peer)| peer.connected())
+        self.peers
+            .iter_mut()
+            .filter(|(_, peer)| peer.connected() && peer.acknowledged())
     }
 
     /// Connects to a remote asnet server.
@@ -102,15 +106,11 @@ where
     ///
     /// Convenience method.
     pub fn broadcast(&mut self, packet: Vec<u8>) {
-        let mut remaining = self.peers.len();
-        for (_, peer) in &mut self.peers {
-            remaining -= 1;
-
-            if remaining == 0 {
-                peer.send(packet);
-                return;
-            }
-
+        for (_, peer) in self
+            .peers
+            .iter_mut()
+            .filter(|(_, peer)| peer.connected() && peer.acknowledged())
+        {
             peer.send(packet.clone());
         }
     }
@@ -201,6 +201,7 @@ where
                 self.remove = Some(event.peer);
             }
 
+            self.peers[event.peer].acknowledge();
             return Some(event);
         }
 
