@@ -196,7 +196,7 @@ where
             self.peers.remove(peer);
         }
 
-        if let Some(event) = self.events.pop_back() {
+        if let Some(event) = self.events.pop_front() {
             if event.kind == EventKind::Disconnect {
                 self.remove = Some(event.peer);
             }
