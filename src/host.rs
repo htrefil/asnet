@@ -32,6 +32,20 @@ where
         HostBuilder::default()
     }
 
+    /// Creates a client host with no additional configuration.
+    ///
+    /// Convenience function.
+    pub fn client() -> Result<Host<T>, Error> {
+        Host::builder().client()
+    }
+
+    /// Creates a server host with no additional configuration.
+    ///
+    /// Convenience function.
+    pub fn server(addr: SocketAddr) -> Result<Host<T>, Error> {
+        Host::builder().server(addr)
+    }
+
     /// Returns a reference to a peer associated with this index, None if the index is invalid.
     pub fn peer(&self, idx: usize) -> Option<&Peer<T>> {
         self.peers.get(idx)
